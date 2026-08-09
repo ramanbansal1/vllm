@@ -85,3 +85,15 @@ def fused_add_rms_norm(
 
     torch.ops._C.fused_add_rms_norm(x, x_residual, weight, epsilon)
     return x, x_residual
+
+
+@ir.ops.silu_and_mul.register_impl(
+    "vllm_c", supported=GPGPU_DEVICE
+)
+def silu_and_mul(x: Tensor) -> Tensor:
+    d = x.shape[-1] // 2
+    output_shape = x.shape[:-1] + (d,)
+    out = torch.empty(output_shape, dtype=x.dtype, device=x.device)
+    torch.ops._C.silu_and_mul(out, x)
+    return out
+
